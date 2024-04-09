@@ -10,13 +10,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jcabi.github.Contents;
 import com.jcabi.github.Coordinates;
 import com.jcabi.github.RtGithub;
 
-import io.github.taz03.models.Info;
+import io.github.taz03.responses.Connections;
+import io.github.taz03.responses.Info;
 
 @Service
 public class DataManager {
@@ -26,6 +26,7 @@ public class DataManager {
     private final Contents content;
 
     private Info info;
+    private Connections connections;
 
     public DataManager(@Autowired PortfolioProperties portfolioProperties) {
         this.content = new RtGithub()
@@ -35,19 +36,40 @@ public class DataManager {
     }
 
     @Scheduled(timeUnit = TimeUnit.MINUTES, initialDelay = 0, fixedRate = 30)
-    private void updateInfo() throws IOException {
+    private void updateCache() {
+        log.info("Update routine running...");
+
+        updateInfo();
+        updateConnections();
+    }
+
+    private void updateInfo() {
         log.info("Info update routine running...");
+        this.info = parseGithubFile("info.json", Info.class);
+    }
 
-        InputStreamReader infoReader = new InputStreamReader(content.get("info.json").raw());
+    private void updateConnections() {
+        log.info("Connections update routine running...");
+        this.connections = parseGithubFile("connections.json", Connections.class);
+    }
 
-        JsonParser parser = objectMapper.createParser(infoReader);
-        this.info = parser.readValueAs(Info.class);
-        log.info(this.info.toString());
-
-        infoReader.close();
+    private <T> T parseGithubFile(String path, Class<T> type) {
+        try (InputStreamReader fileReader = new InputStreamReader(content.get(path).raw())) {
+            T result = objectMapper.readValue(fileReader, type);
+            log.info(result.toString());
+            return result;
+        } catch (IOException e) {
+            log.error("Error reading file " + path, e);
+        }
+        
+        return null;
     }
 
     public Info getInfo() {
         return info;
+    }
+
+    public Connections getConnections() {
+        return connections;
     }
 }

@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: taz03
+
+portfolio:
+  contentRepository: Taz-Portfolio/content-repository
