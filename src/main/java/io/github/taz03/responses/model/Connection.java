@@ -1,4 +1,4 @@
-package io.github.taz03.models;
+package io.github.taz03.responses.model;
 
 public record Connection(
     String icon,

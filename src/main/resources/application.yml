@@ -3,4 +3,4 @@ spring:
     name: taz03
 
 portfolio:
-  contentRepository: ${CONTENT_REPOSITORY}
+  contentRepository: Taz-Portfolio/content-repository
